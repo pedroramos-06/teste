@@ -1,0 +1,16 @@
+.env
+.env.*
+
+# Build output and VCS
+target/
+.git/
+.gitignore
+
+# IDE / OS
+.idea/
+.vscode/
+*.iml
+.DS_Store
+
+# Docs
+HELP.md

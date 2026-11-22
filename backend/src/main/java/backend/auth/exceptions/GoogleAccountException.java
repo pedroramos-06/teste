@@ -1,0 +1,7 @@
+package backend.auth.exceptions;
+
+public class GoogleAccountException extends RuntimeException {
+    public GoogleAccountException() {
+        super("O usuário deve fazer login pelo Google");
+    }
+}

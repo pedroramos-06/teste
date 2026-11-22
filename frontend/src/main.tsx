@@ -1,0 +1,109 @@
+import { StrictMode, useEffect } from "react";
+import { createRoot } from "react-dom/client";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
+import { useAuthStore } from "@auth/authStore";
+import Logo from "@assets/logo-primary.svg";
+
+import "@shared/styles.css";
+import AuthLayout from "@shared/layouts/AuthLayout.tsx";
+import MainLayout from "@shared/layouts/MainLayout";
+import Login from "@auth/Login";
+import Register from "@auth/Register";
+import Offers from "@ride-offer/Offers.tsx";
+import MyRides from "@my-rides/MyRides";
+import Requests from "@ride-request/Requests.tsx";
+import RequestForm from "@ride-request/RequestForm";
+import RequestDetails from "@ride-request/RequestDetails";
+import { LoaderCircle } from "lucide-react";
+import RequireAuth from "@auth/RequireAuth";
+import RequireGuest from "@auth/RequireGuest";
+import Profile from "@user/Profile";
+import ProfileForm from "@user/ProfileForm.tsx";
+import Vehicles from "@vehicle/Vehicles";
+import VehicleForm from "@vehicle/VehicleForm.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import OfferDetails from "@ride-offer/OfferDetails";
+import OfferForm from "@ride-offer/OfferForm";
+import NotFoundPage from "./NotFoundPage";
+import History from "@my-rides/History";
+import Notifications from "@notification/Notifications";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+});
+
+const router = createBrowserRouter([
+  {
+    element: <RequireGuest />,
+    children: [
+      {
+        element: <AuthLayout />,
+        children: [
+          { path: "/login", element: <Login /> },
+          { path: "/register", element: <Register /> },
+        ],
+      },
+    ],
+  },
+  {
+    element: <RequireAuth />,
+    children: [
+      {
+        element: <MainLayout />,
+        children: [
+          { path: "/", element: <Navigate to="/offers" replace /> },
+          { path: "/offers", element: <Offers /> },
+          { path: "/offers/:id", element: <OfferDetails /> },
+          { path: "/offers/create", element: <OfferForm /> },
+          { path: "/offers/:id/edit", element: <OfferForm /> },
+          { path: "/history", element: <History /> },
+          { path: "/myrides", element: <MyRides /> },
+          { path: "/requests", element: <Requests /> },
+          { path: "/requests/create", element: <RequestForm /> },
+          { path: "/requests/:id", element: <RequestDetails /> },
+          { path: "/requests/:id/edit", element: <RequestForm /> },
+          { path: "/users/:id", element: <Profile /> },
+          { path: "/profile/edit", element: <ProfileForm /> },
+          { path: "/notifications", element: <Notifications /> },
+          { path: "/vehicles", element: <Vehicles /> },
+          { path: "/vehicles/create", element: <VehicleForm /> },
+          { path: "/vehicles/:id/edit", element: <VehicleForm /> },
+        ],
+      },
+    ],
+  },
+  { path: "*", element: <NotFoundPage /> },
+]);
+
+export function AppInitializer() {
+  const initialize = useAuthStore((state) => state.initialize);
+  const isLoading = useAuthStore((state) => state.isLoading);
+
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  if (isLoading) {
+    return (
+      <div className="flex-center min-h-dvh flex-col gap-5 bg-neutral-light">
+        <img src={Logo} alt="Logo" className="h-22.25" />
+
+        <LoaderCircle color="var(--color-primary)" className="animate-spin" />
+      </div>
+    );
+  }
+
+  return <RouterProvider router={router} />;
+}
+
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <AppInitializer />
+    </QueryClientProvider>
+  </StrictMode>,
+);

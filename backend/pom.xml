@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.example</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>ifast</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
+	<name>ifast</name>
 	<description/>
 	<url/>
 	<licenses>
@@ -139,6 +139,7 @@
 	</dependencies>
 
 	<build>
+		<finalName>ifast</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

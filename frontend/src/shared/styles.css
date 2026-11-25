@@ -29,7 +29,7 @@
 
 @layer base {
   body {
-    @apply min-h-screen bg-neutral-light text-slate-900 caret-primary accent-primary-selected;
+    @apply min-h-dvh bg-neutral-light text-slate-900 caret-primary accent-primary-selected;
     font-family: var(--font-inter);
   }
 

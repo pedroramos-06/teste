@@ -54,7 +54,7 @@ export default function Profile() {
       </section>
 
       <section className="flex-column w-full gap-2.5">
-        <h3>Caronas</h3>
+        <h3>Caronas Concluídas</h3>
 
         <div className="flex-center gap-4 text-center text-button text-white">
           <div className="flex-center rounded-lg bg-secondary p-2">

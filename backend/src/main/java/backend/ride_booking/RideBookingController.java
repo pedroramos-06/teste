@@ -22,7 +22,7 @@ import backend.user.User;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
-@AllArgsConstructor 
+@AllArgsConstructor
 @RestController
 public class RideBookingController {
     private final RideBookingService rideBookingService;
@@ -35,19 +35,20 @@ public class RideBookingController {
     }
 
     @GetMapping("/ride-offers/{rideOfferId}/bookings")
-    public ResponseEntity<List<RideBookingDto>> getByOffer(@PathVariable Long rideOfferId, 
-                                                            @RequestParam(required = false) StatusBooking status) {
-        List<RideBookingDto> response = rideBookingService.getForOffer(rideOfferId, status);
+    public ResponseEntity<List<RideBookingDto>> getByOffer(@PathVariable Long rideOfferId,
+                                                           @RequestParam(required = false) StatusBooking status,
+                                                           @AuthenticationPrincipal User user) {
+        List<RideBookingDto> response = rideBookingService.getForOffer(rideOfferId, status, user);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/ride-requests/{rideRequestId}/bookings")
-    public ResponseEntity<List<RideBookingDto>> getByRequest(@PathVariable Long rideRequestId, 
-                                                            @RequestParam(required = false) StatusBooking status,
-                                                            @AuthenticationPrincipal User user) {
+    public ResponseEntity<List<RideBookingDto>> getByRequest(@PathVariable Long rideRequestId,
+                                                             @RequestParam(required = false) StatusBooking status,
+                                                             @AuthenticationPrincipal User user) {
         List<RideBookingDto> response = rideBookingService.getForRequest(rideRequestId, status, user);
         return ResponseEntity.ok(response);
-    } 
+    }
 
     @PostMapping("/ride-offers/{rideOfferId}/bookings")
     public ResponseEntity<IdResponseDto> createForOffer(@PathVariable Long rideOfferId, @AuthenticationPrincipal User user) {
@@ -56,9 +57,9 @@ public class RideBookingController {
     }
 
     @PostMapping("/ride-requests/{rideRequestId}/bookings")
-    public ResponseEntity<IdResponseDto> createForRequest(@PathVariable Long rideRequestId, 
-                                                        @Valid @RequestBody CreateRideBookingForRequestDto rideBookingForRequestDto, 
-                                                        @AuthenticationPrincipal User user) {
+    public ResponseEntity<IdResponseDto> createForRequest(@PathVariable Long rideRequestId,
+                                                          @Valid @RequestBody CreateRideBookingForRequestDto rideBookingForRequestDto,
+                                                          @AuthenticationPrincipal User user) {
         IdResponseDto response = rideBookingService.createForRequest(rideRequestId, rideBookingForRequestDto, user);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

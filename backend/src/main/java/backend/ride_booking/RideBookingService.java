@@ -27,8 +27,8 @@ import backend.user.User;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 
-@Service 
-@AllArgsConstructor 
+@Service
+@AllArgsConstructor
 public class RideBookingService {
     private final RideBookingRepository rideBookingRepository;
     private final RideOfferRepository rideOfferRepository;
@@ -37,47 +37,58 @@ public class RideBookingService {
 
     public List<RideBookingDto> getMyBookings(RideListStatus status, User user) {
         List<RideBooking> bookings = status == RideListStatus.CLOSED
-            ? rideBookingRepository.findClosedByPassenger(user)
-            : rideBookingRepository.findOpenByPassenger(user);
+                ? rideBookingRepository.findClosedByPassenger(user)
+                : rideBookingRepository.findOpenByPassenger(user);
 
         return bookings.stream().map(RideBookingDto::new).toList();
     }
 
-    public List<RideBookingDto> getForOffer(Long rideOfferId, StatusBooking status) {
+    public List<RideBookingDto> getForOffer(Long rideOfferId, StatusBooking status, User user) {
         RideOffer rideOffer = rideOfferRepository.findById(rideOfferId)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
-        List<RideBooking> bookings = status == null
-            ? rideBookingRepository.findByRideOffer(rideOffer)
-            : rideBookingRepository.findByRideOfferAndStatus(rideOffer, status);
+        boolean canSeeAccepted = canSeeAccepted(rideOffer, user);
+
+        if (status == StatusBooking.ACCEPTED && !canSeeAccepted) {
+            return List.of();
+        }
+
+        List<RideBooking> bookings;
+        if (status != null) {
+            bookings = rideBookingRepository.findByRideOfferAndStatus(rideOffer, status);
+        } else if (canSeeAccepted) {
+            bookings = rideBookingRepository.findByRideOffer(rideOffer);
+        } else {
+            bookings = rideBookingRepository.findByRideOfferAndStatusNot(rideOffer, StatusBooking.ACCEPTED);
+        }
 
         return bookings
-            .stream()
-            .map(RideBookingDto::new)
-            .toList();
+                .stream()
+                .map(RideBookingDto::new)
+                .toList();
     }
 
     public List<RideBookingDto> getForRequest(Long rideRequestId, StatusBooking status, User user) {
         RideRequest rideRequest = rideRequestRepository.findByIdAndRequester(rideRequestId, user)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         List<RideBooking> bookings = status == null
-            ? rideBookingRepository.findByRideRequest(rideRequest)
-            : rideBookingRepository.findByRideRequestAndStatus(rideRequest, status);
+                ? rideBookingRepository.findByRideRequest(rideRequest)
+                : rideBookingRepository.findByRideRequestAndStatus(rideRequest, status);
 
         return bookings
-            .stream()
-            .filter(booking -> booking.getRideOffer().getStatus() == StatusOffer.AVAILABLE)
-            .map(RideBookingDto::new)
-            .toList();
-    } 
+                .stream()
+                .filter(booking -> booking.getRideOffer().getStatus() == StatusOffer.AVAILABLE)
+                .map(RideBookingDto::new)
+                .toList();
+    }
 
     @Transactional
     public IdResponseDto createForOffer(Long rideOfferId, User user) {
         RideOffer rideOffer = rideOfferRepository.findById(rideOfferId)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
-        if(rideOffer.getStatus() != StatusOffer.AVAILABLE){ 
+        if(rideOffer.getStatus() != StatusOffer.AVAILABLE){
             throw new InvalidRideOfferStateException();
         }
         if (rideOffer.getDriver().getId().equals(user.getId())) {
@@ -99,13 +110,13 @@ public class RideBookingService {
         return new IdResponseDto(rideBooking.getId());
     }
 
-    @Transactional 
+    @Transactional
     public IdResponseDto createForRequest(Long rideRequestId, CreateRideBookingForRequestDto dto, User user) {
         RideOffer rideOffer = rideOfferRepository.findById(dto.rideOfferId())
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         RideRequest rideRequest = rideRequestRepository.findById(rideRequestId)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
         rideRequest.requireOpen();
 
         if (!rideOffer.getDriver().getId().equals(user.getId())) {
@@ -114,7 +125,7 @@ public class RideBookingService {
         if (rideOffer.getDriver().getId().equals(rideRequest.getRequester().getId())) {
             throw new AccessDeniedException("Usuário não pode responder ao seu próprio pedido");
         }
-        if(rideOffer.getStatus() != StatusOffer.AVAILABLE){ 
+        if(rideOffer.getStatus() != StatusOffer.AVAILABLE){
             throw new InvalidRideOfferStateException();
         }
         ensureCompatible(rideRequest, rideOffer);
@@ -161,7 +172,7 @@ public class RideBookingService {
         notificationService.create("Solicitação Aceita", message, rideOffer, receiver);
     }
 
-    @Transactional 
+    @Transactional
     public void reject(Long bookingId, User user) {
         RideBooking rideBooking = getPendingBookingForAuthorizedUser(bookingId, user);
         rideBooking.reject();
@@ -182,7 +193,7 @@ public class RideBookingService {
     @Transactional
     public void cancel(Long bookingId, User user) {
         RideBooking booking = rideBookingRepository.findById(bookingId)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         if (!booking.getPassenger().getId().equals(user.getId())) {
             throw new AccessDeniedException("Você não pode cancelar esta reserva");
@@ -198,26 +209,26 @@ public class RideBookingService {
             String message = user.getName() + " saiu da sua carona do dia " +
                     rideOffer.getDepartureDateTime().format(DateTimeFormatter.ofPattern("dd/MM"));
             notificationService.create("Saída da Carona", message, rideOffer, rideOffer.getDriver());
-        };
+        }
     }
 
     @Transactional
     public void cancelPendingByOffer(Long rideOfferId) {
         rideBookingRepository
-            .findByRideOfferIdAndStatusIn(rideOfferId, List.of(StatusBooking.PENDING))
-            .forEach(RideBooking::cancel);
+                .findByRideOfferIdAndStatusIn(rideOfferId, List.of(StatusBooking.PENDING))
+                .forEach(RideBooking::cancel);
     }
 
     @Transactional
     public void cancelPendingByRequest(RideRequest rideRequest) {
         rideBookingRepository
-            .findByRideRequestAndStatus(rideRequest, StatusBooking.PENDING)
-            .forEach(RideBooking::cancel);
+                .findByRideRequestAndStatus(rideRequest, StatusBooking.PENDING)
+                .forEach(RideBooking::cancel);
     }
 
     private RideBooking getPendingBookingForAuthorizedUser(Long bookingId, User user) {
         RideBooking rideBooking = rideBookingRepository.findById(bookingId)
-            .orElseThrow(EntityNotFoundException::new);
+                .orElseThrow(EntityNotFoundException::new);
 
         if (rideBooking.getStatus() != StatusBooking.PENDING) {
             throw new InvalidRideBookingStateException();
@@ -232,9 +243,9 @@ public class RideBookingService {
 
     private void ensureNoExistingBooking(User passenger, RideOffer rideOffer) {
         if (rideBookingRepository.existsByPassengerAndRideOfferAndStatusIn(
-            passenger,
-            rideOffer,
-            List.of(StatusBooking.PENDING, StatusBooking.ACCEPTED)
+                passenger,
+                rideOffer,
+                List.of(StatusBooking.PENDING, StatusBooking.ACCEPTED)
         )) {
             throw new DuplicateRideBookingException();
         }
@@ -242,7 +253,7 @@ public class RideBookingService {
 
     private void ensureCompatible(RideRequest rideRequest, RideOffer rideOffer) {
         if (rideOffer.getDepartureDateTime().isBefore(rideRequest.getDesiredDepartureStart())
-            || rideOffer.getDepartureDateTime().isAfter(rideRequest.getDesiredDepartureEnd())) {
+                || rideOffer.getDepartureDateTime().isAfter(rideRequest.getDesiredDepartureEnd())) {
             throw new IncompatibleRideBookingException();
         }
     }
@@ -252,5 +263,11 @@ public class RideBookingService {
             case DRIVER -> rideBooking.getPassenger().getId().equals(user.getId());
             case PASSENGER -> rideBooking.getRideOffer().getDriver().getId().equals(user.getId());
         };
+    }
+
+    private boolean canSeeAccepted(RideOffer rideOffer, User currentUser) {
+        return rideOffer.getDriver().getId().equals(currentUser.getId())
+                || rideBookingRepository.existsByPassengerAndRideOfferAndStatusIn(
+                currentUser, rideOffer, List.of(StatusBooking.ACCEPTED));
     }
 }

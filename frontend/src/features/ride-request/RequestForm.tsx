@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useNavigate, useParams } from "react-router";
 import type z from "zod";
 import { LoaderCircle } from "lucide-react";
@@ -42,6 +42,10 @@ export default function RequestForm() {
       endTime: "",
     },
   });
+
+  const date = useWatch({ control, name: "date" });
+  const startTime = useWatch({ control, name: "startTime" });
+  const endTime = useWatch({ control, name: "endTime" });
 
   const {
     data: request,
@@ -125,14 +129,21 @@ export default function RequestForm() {
 
           <div className="field">
             <label htmlFor="request-date">Data</label>
-            <input
-              {...register("date")}
-              id="request-date"
-              type="date"
-              min={getMinDate()}
-              max={getMaxDate()}
-              aria-invalid={errors.date ? "true" : "false"}
-            />
+            <div className="relative">
+              <input
+                {...register("date")}
+                id="request-date"
+                type="date"
+                min={getMinDate()}
+                max={getMaxDate()}
+                aria-invalid={errors.date ? "true" : "false"}
+              />
+              {!date && (
+                <span aria-hidden="true" className="placeholder-time-date">
+                  dd/mm/aaaa
+                </span>
+              )}
+            </div>
             {errors.date && <span>{errors.date.message}</span>}
           </div>
 
@@ -140,24 +151,38 @@ export default function RequestForm() {
             <label>Horário Desejado</label>
             <div className="flex items-start gap-3">
               <div className="field w-full">
-                <input
-                  {...register("startTime")}
-                  id="start-time"
-                  type="time"
-                  aria-label="Horário inicial desejado"
-                  aria-invalid={errors.startTime ? "true" : "false"}
-                />
+                <div className="relative">
+                  <input
+                    {...register("startTime")}
+                    id="start-time"
+                    type="time"
+                    aria-label="Horário inicial desejado"
+                    aria-invalid={errors.startTime ? "true" : "false"}
+                  />
+                  {!startTime && (
+                    <span aria-hidden="true" className="placeholder-time-date">
+                      HH:mm
+                    </span>
+                  )}
+                </div>
                 {errors.startTime && <span>{errors.startTime.message}</span>}
               </div>
               <span className="mt-3.75 shrink-0">Até as</span>
               <div className="field w-full">
-                <input
-                  {...register("endTime")}
-                  id="end-time"
-                  type="time"
-                  aria-label="Horário final desejado"
-                  aria-invalid={errors.endTime ? "true" : "false"}
-                />
+                <div className="relative">
+                  <input
+                    {...register("endTime")}
+                    id="end-time"
+                    type="time"
+                    aria-label="Horário final desejado"
+                    aria-invalid={errors.endTime ? "true" : "false"}
+                  />
+                  {!endTime && (
+                    <span aria-hidden="true" className="placeholder-time-date">
+                      HH:mm
+                    </span>
+                  )}
+                </div>
                 {errors.endTime && <span>{errors.endTime.message}</span>}
               </div>
             </div>

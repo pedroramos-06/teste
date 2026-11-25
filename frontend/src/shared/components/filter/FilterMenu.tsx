@@ -1,6 +1,6 @@
 import { Drawer } from "vaul";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type z from "zod";
 import NeighborhoodCombobox from "@shared/components/form/NeighborhoodCombobox";
 import { useFilters } from "@shared/hooks/useFilter";
@@ -28,6 +28,8 @@ export default function FilterMenu({ open, setOpen }: FilterMenuProps) {
     values: { ...filters, origin: filters.origin ?? null, destination: filters.destination ?? null },
     mode: "onTouched",
   });
+
+  const date = useWatch({ control, name: "date" });
 
   const onSubmit = (data: z.infer<typeof filterSchema>) => {
     applyFilters(data);
@@ -83,15 +85,22 @@ export default function FilterMenu({ open, setOpen }: FilterMenuProps) {
 
             <div className="field">
               <label htmlFor="date">Data</label>
-              <input
-                {...register("date")}
-                aria-invalid={errors.date ? "true" : "false"}
-                type="date"
-                id="date"
-                min={getMinDate()}
-                max={getMaxDate()}
-                onClick={(e) => e.currentTarget.showPicker()}
-              />
+              <div className="relative">
+                <input
+                  {...register("date")}
+                  aria-invalid={errors.date ? "true" : "false"}
+                  type="date"
+                  id="date"
+                  min={getMinDate()}
+                  max={getMaxDate()}
+                  onClick={(e) => e.currentTarget.showPicker()}
+                />
+                {!date && (
+                  <span aria-hidden="true" className="placeholder-time-date">
+                    dd/mm/aaaa
+                  </span>
+                )}
+              </div>
               {errors.date && <span>{errors.date.message}</span>}
             </div>
 

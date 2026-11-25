@@ -63,6 +63,10 @@ export default function OfferForm() {
     },
   });
 
+  const date = useWatch({ control, name: "date" });
+  const departureTime = useWatch({ control, name: "departureTime" });
+  const returnTime = useWatch({ control, name: "returnTime" });
+
   const { data: vehicles = [], isLoading: isLoadingVehicles } = useQuery({
     queryKey: ["vehicles"],
     queryFn: getVehicles,
@@ -203,40 +207,61 @@ export default function OfferForm() {
 
           <div className="field">
             <label htmlFor="date">Data</label>
-            <input
-              {...register("date")}
-              aria-invalid={errors.date ? "true" : "false"}
-              type="date"
-              id="date"
-              className="read-only:cursor-not-allowed read-only:opacity-60"
-              readOnly={!!requestDate}
-              min={requestDate ?? getMinDate()}
-              max={requestDate ?? getMaxDate()}
-            ></input>
+            <div className="relative">
+              <input
+                {...register("date")}
+                aria-invalid={errors.date ? "true" : "false"}
+                type="date"
+                id="date"
+                className="read-only:cursor-not-allowed read-only:opacity-60"
+                readOnly={!!requestDate}
+                min={requestDate ?? getMinDate()}
+                max={requestDate ?? getMaxDate()}
+              ></input>
+              {!date && (
+                <span aria-hidden="true" className="placeholder-time-date">
+                  dd/mm/aaaa
+                </span>
+              )}
+            </div>
             {errors.date && <span>{errors.date.message}</span>}
           </div>
 
           <div className="flex gap-4">
             <div className="field w-full">
               <label htmlFor="departureTime">Horário de Ida</label>
-              <input
-                {...register("departureTime")}
-                aria-invalid={errors.departureTime ? "true" : "false"}
-                type="time"
-                id="departureTime"
-              ></input>
+              <div className="relative">
+                <input
+                  {...register("departureTime")}
+                  aria-invalid={errors.departureTime ? "true" : "false"}
+                  type="time"
+                  id="departureTime"
+                />
+                {!departureTime && (
+                  <span aria-hidden="true" className="placeholder-time-date">
+                    HH:mm
+                  </span>
+                )}
+              </div>
               {errors.departureTime && <span>{errors.departureTime.message}</span>}
             </div>
             {isRoundTrip && (
               <div className="field w-full">
                 <label htmlFor="returnTime">Horário de Volta</label>
-                <input
-                  {...register("returnTime")}
-                  aria-invalid={errors.returnTime ? "true" : "false"}
-                  type="time"
-                  id="returnTime"
-                ></input>
-                {errors.returnTime && <span>{errors.returnTime.message}</span>}
+                <div className="relative">
+                  <input
+                    {...register("returnTime")}
+                    aria-invalid={errors.returnTime ? "true" : "false"}
+                    type="time"
+                    id="returnTime"
+                  ></input>
+                  {errors.returnTime && <span>{errors.returnTime.message}</span>}
+                  {!returnTime && (
+                    <span aria-hidden="true" className="placeholder-time-date">
+                      HH:mm
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -307,7 +332,7 @@ export default function OfferForm() {
                   className="read-only:cursor-not-allowed read-only:opacity-60"
                   aria-invalid={errors.model ? "true" : "false"}
                   type="text"
-                  placeholder="Digite o modelo do veículo"
+                  placeholder="Modelo"
                   id="model"
                 ></input>
                 {errors.model && <span>{errors.model.message}</span>}
@@ -321,7 +346,7 @@ export default function OfferForm() {
                   className="read-only:cursor-not-allowed read-only:opacity-60"
                   aria-invalid={errors.color ? "true" : "false"}
                   type="text"
-                  placeholder="Digite a cor do veículo"
+                  placeholder="Cor"
                   id="color"
                 ></input>
                 {errors.color && <span>{errors.color.message}</span>}

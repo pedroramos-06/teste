@@ -81,6 +81,11 @@
     @apply focus:outline-2 focus:outline-primary-selected aria-invalid:ring-2 aria-invalid:ring-danger focus:aria-invalid:outline-4 focus:aria-invalid:outline-danger/40;
   }
 
+  input[type="date"],
+  input[type="time"] {
+    @apply pointer-coarse:appearance-none;
+  }
+
   select option {
     @apply text-slate-900;
   }

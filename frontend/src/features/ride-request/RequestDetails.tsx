@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, LoaderCircle, Pencil, Trash2 } from "lucide-react";
+import { ArrowRight, LoaderCircle, SquarePen, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { Ripples } from "react-ripples-continued";
@@ -14,6 +14,7 @@ import { DeleteModal } from "@shared/components/modals/DeleteModal";
 import { PageHeader } from "@shared/components/navigation/PageHeader";
 import BookingRequestCard from "@ride-booking/BookingRequestCard";
 import { getByRequest } from "@ride-booking/bookingService";
+import ShareLink from "@shared/components/ShareLink";
 
 export default function RequestDetails() {
   const { id } = useParams();
@@ -94,10 +95,13 @@ export default function RequestDetails() {
     <>
       <title>Detalhes do Pedido</title>
       <PageHeader title="Detalhes">
+        {request?.status === RideRequestStatus.PENDING && (
+          <ShareLink />
+        )}
         {canManageRequest && (
           <>
             <Link to={`/requests/${request.id}/edit`} className="icon-btn text-secondary" aria-label="Editar pedido">
-              <Pencil size={22} />
+              <SquarePen size={22} />
               <Ripples color="var(--ripple-dark)" on="mouseDown" />
             </Link>
             <button

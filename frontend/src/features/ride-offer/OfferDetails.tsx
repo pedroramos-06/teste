@@ -15,6 +15,7 @@ import { SuccessModal } from "@shared/components/modals/SucessModal";
 import { NeighborhoodsLabels } from "@shared/types/neighborhoods";
 import { getByOffer, cancel as cancelBooking, createForOffer, accept, reject } from "@ride-booking/bookingService";
 import BookingOfferCard from "@ride-booking/BookingOfferCard";
+import ShareLink from "@shared/components/ShareLink";
 
 type OfferAction = {
   label: string;
@@ -196,6 +197,9 @@ export default function OfferDetails() {
     <>
       <title>Detalhes Carona</title>
       <PageHeader title="Detalhes">
+        {isOpen && (
+          <ShareLink />
+        )}
         {isDriver && isOpen && (
           <>
             <Link to={`/offers/${offer.id}/edit`} className="icon-btn">

@@ -8,10 +8,12 @@ import RetryError from "@shared/components/RetryError";
 import { PageHeader } from "@shared/components/navigation/PageHeader";
 import ProfilePicture from "@shared/components/ProfilePicture";
 import { NeighborhoodsLabels } from "@shared/types/neighborhoods";
+import WhatsappLogo from "@assets/whatsapp-logo.svg";
 
 export default function Profile() {
   const authUser = useAuthStore((state) => state.user);
   const { id } = useParams();
+  const isUser = authUser?.id == id;
 
   const {
     data: profile,
@@ -40,7 +42,18 @@ export default function Profile() {
     <>
       <title>Perfil</title>
       <PageHeader title="Perfil">
-        {authUser?.id == id && (
+        {!isUser && profile.user.phoneNumber && (
+          <a
+            href={`https://wa.me/55${profile.user.phoneNumber.replace(/\D/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="icon-btn"
+          >
+            <img src={WhatsappLogo} alt="Logo Whatsapp" className="size-6" />
+            <Ripples color="var(--ripple-dark)" />
+          </a>
+        )}
+        {isUser && (
           <Link to={"/profile/edit"} className="icon-btn">
             <SquarePen className="text-secondary" size={24} />
             <Ripples color="var(--ripple-dark)" />
@@ -87,7 +100,7 @@ export default function Profile() {
             <span className="text-label">Contato: </span>
             {profile.user.phoneNumber ?? "(não definido)"}
           </p>
-          {authUser?.id == id && (
+          {isUser && (
             <p>
               <span className="text-label">Endereço: </span>
               {profile.user.address ? NeighborhoodsLabels[profile.user.address] : "(não definido)"}
